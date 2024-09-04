@@ -3,8 +3,6 @@ import socket
 import threading
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import hashes
 
 # Determine the directory one folder above the current working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -110,10 +108,6 @@ def handle_client(client_socket):
 def start_bug_server():
     """Start the bug server to accept client connections."""
     print("Bug server started and listening...")
-        while True:
-            client_socket, client_address = server_socket.accept()
-            print(f"Connection from {client_address}")
-            threading.Thread(target=handle_client, args=(client_socket)).start()
 
     while True:
         client_socket, addr = bug_server.accept()

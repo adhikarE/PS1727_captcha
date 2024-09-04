@@ -1,8 +1,6 @@
 import socket
 import threading
 
-DEBUG = True
-
 HOST = '127.0.0.1'
 PORT = int(input("Enter the port: "))
 
@@ -23,13 +21,11 @@ def serve():
 
         message = client.recv(1024).decode("ascii")
 
-        if DEBUG == True: print(f"Debug message recieved: {message}")
-
         if message == "data":
             client.send("Aadya, Anusha, Kavish, Sia, Suresh, Tatsam".encode("ascii"))
 
         elif message == "SIH":
-            client.send("Problem Statement Number: 2727".encode("ascii"))
+            client.send("Problem Statement Number: 1727".encode("ascii"))
 
         elif message == "RST":
             client_list.remove(client)

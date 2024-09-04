@@ -4,14 +4,9 @@ import threading
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 
-
+# Determine the directory one folder above the current working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KEY_DIR = os.path.join(BASE_DIR, '..')  # One folder up
-DEBUG = True
-
-HOST = '127.0.0.1'
-PORT = int(input("Enter the port: "))
-
 
 # File paths for RSA keys
 PRIVATE_KEY_PATH = os.path.join(KEY_DIR, 'private_key.pem')
@@ -28,51 +23,6 @@ client.connect(('127.0.0.1', int(input("Enter the port: "))))  # Connect to bug.
 # Receive the public key from bug.py
 public_pem = client.recv(1024)
 public_key = serialization.load_pem_public_key(public_pem)
-class dataHandeler:
-    def __init__(self, KEY) -> None:
-        self.KEY = KEY
-        
-    def encrypt(self, text):
-        result = ""
-
-        # traverse text
-        for i in range(len(text)):
-            char = text[i]
-
-            # Encrypt uppercase characters
-            if (char.isupper()):
-                result += chr((ord(char) + self.KEY - 65) % 26 + 65)
-
-            # Encrypt lowercase characters
-            else:
-                result += chr((ord(char) + self.KEY - 97) % 26 + 97)
-
-        return result
-    
-    def decrypt(self, text):
-        result = ""
-
-        # traverse text
-        for i in range(len(text)):
-            char = text[i]
-
-            # Encrypt uppercase characters
-            if (char.isupper()):
-                result += chr((ord(char) - self.KEY - 65) % 26 + 65)
-
-            # Encrypt lowercase characters
-            else:
-                result += chr((ord(char) - self.KEY - 97) % 26 + 97)
-
-        return result
-        
-    def ingress(self):  # TODO
-        pass
-    
-    def egress(self):   # TODO
-        pass
-
-handler = dataHandeler(3)
 
 def receive():
     """Receive encrypted messages from the server, decrypt them, and print them."""
@@ -95,14 +45,6 @@ def receive():
                     label=None
                 )
             ).decode('ascii')
-            
-            message = client.recv(1024).decode('ascii')  # Receiving message from server
-
-            if DEBUG == True: print(f"Debug message recieeved: {message}")
-
-            message = handler.decrypt(message)
-
-            print(f"Server: {message}")
 
             print(f"Decrypted response: \n{decrypted_message}")
             print("="*50 + "\n")
@@ -134,12 +76,6 @@ def write():
         print("="*50 + "\n")
 
         client.send(encrypted_message)  # Send encrypted message to server
-        
-        message = handler.encrypt(message)
-
-        if DEBUG == True: print(f"Debug encrypted text send: {message}")
-
-        client.send(message.encode('ascii'))
 
         if message == "RST":
             client.close()
