@@ -1,7 +1,7 @@
 import socket
 import threading
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import hashes
 
 # Generate RSA keys
 private_key = rsa.generate_private_key(
@@ -96,7 +96,7 @@ def start_server():
         while True:
             client_socket, client_address = server_socket.accept()
             print(f"Connection from {client_address}")
-            threading.Thread(target=handle_client, args=(client_socket,)).start()
+            threading.Thread(target=handle_client, args=(client_socket)).start()
 
 
 if __name__ == "__main__":
