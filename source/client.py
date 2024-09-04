@@ -32,6 +32,10 @@ def receive():
             if not encrypted_message:
                 break
             
+            print("\n" + "="*50)
+            print(f"Received encrypted response: \n{encrypted_message.hex()}")
+            print("="*50)
+
             # Decrypt the received encrypted message
             decrypted_message = private_key.decrypt(
                 encrypted_message,
@@ -42,7 +46,8 @@ def receive():
                 )
             ).decode('ascii')
 
-            print(f"Server: {decrypted_message}")
+            print(f"Decrypted response: \n{decrypted_message}")
+            print("="*50 + "\n")
         except Exception as e:
             print(f"Decryption error: {e}")
             client.close()
@@ -51,8 +56,9 @@ def receive():
 def write():
     """Read commands from user, encrypt them, and send to the server."""
     while True:
+        # Prompt the user for input without an extra newline
         message = input("Enter your command: ")
-        
+
         # Encrypt the message to be sent
         encrypted_message = public_key.encrypt(
             message.encode('ascii'),
@@ -63,7 +69,13 @@ def write():
             )
         )
         
-        client.send(encrypted_message)
+        print("\n" + "="*50)
+        print(f"Original message: \n{message}")
+        print("="*50)
+        print(f"Encrypted message: \n{encrypted_message.hex()}")
+        print("="*50 + "\n")
+
+        client.send(encrypted_message)  # Send encrypted message to server
 
         if message == "RST":
             client.close()
