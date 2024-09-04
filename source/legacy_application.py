@@ -22,7 +22,10 @@ def serve():
         message = client.recv(1024).decode("ascii")
 
         if message == "data":
-            client.send("Apple, Banana, Mango, Litchi, Kiwi".encode("ascii"))
+            client.send("Aadya, Anusha, Kavish, Sia, Suresh, Tatsam".encode("ascii"))
+
+        elif message == "SIH":
+            client.send("Problem Statement Number: 2727".encode("ascii"))
 
         elif message == "RST":
             client_list.remove(client)
