@@ -35,6 +35,8 @@ client.connect(('127.0.0.1', int(input("Enter the port: "))))  # Connect to bug.
 public_pem = client.recv(1024)
 public_key = serialization.load_pem_public_key(public_pem)
 
+TERMINATE = "RST"
+
 def receive():
     """Receive encrypted messages from the server, decrypt them, and print them."""
     while True:
@@ -60,6 +62,10 @@ def receive():
 
             print(f"Decrypted response: \n{decrypted_message}")
             print("="*50 + "\n")
+
+            if decrypted_message == "RST":
+                break
+
         except Exception as e:
             print(f"Decryption error: {e}")
             client.close()
@@ -90,7 +96,7 @@ def write():
 
         client.send(encrypted_message)  # Send encrypted message to server
 
-        if message == "RST":
+        if message == TERMINATE:
             client.close()
             break
 

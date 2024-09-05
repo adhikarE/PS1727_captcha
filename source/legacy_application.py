@@ -24,13 +24,14 @@ client_list = []
 
 DATA = ["Aadya, Anusha, Kavish, Sia, Suresh, Tatsam", "Problem Statement Number: 1727"]
 ERROR = "Couldn't process!"
+TERMINATE = "RST"
 
 def serve():
     client, address = server.accept()
     client_list.append(client)
     print(f"{client} Connected to the application")
 
-    while True:
+    while client_list:
 
         message = client.recv(1024).decode("ascii")
 
@@ -57,11 +58,12 @@ def serve():
                 print("="*50)
                 
 
-        elif message == "RST":
+        elif message == TERMINATE:
             client_list.remove(client)
+            client.send(TERMINATE.encode("ascii"))
             client.close()
             print(f"{client} disconnected!")
-            break
+            continue
 
         else:
             client.send(ERROR.encode("ascii"))
@@ -72,7 +74,6 @@ def serve():
                 print("="*50)
             
             continue
-
 
 thread = threading.Thread(target=serve)
 thread.start()

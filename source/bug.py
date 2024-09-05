@@ -12,6 +12,7 @@ if debug_opt == 'Y':
     DEBUG = True
 
 else:
+    
     DEBUG = False
 
 # Determine the directory one folder above the current working directory
@@ -37,7 +38,7 @@ public_pem = public_key.public_bytes(
 )
 
 HOST = '127.0.0.1'
-BUG_PORT = int(input("Enter the port for bug.py to listen: "))  # Port for bug.py server
+BUG_PORT = int(input("Enter the port for bug.py to listen for clients: "))  # Port for bug.py server
 LEGACY_PORT = int(input("Enter the port for legacy_application.py to connect: "))  # Port for legacy application
 
 # Set up a server socket for bug.py
@@ -92,7 +93,7 @@ def egress(client_socket):
             response = legacy_socket.recv(1024)  # Receive data from the legacy application
             if not response:
                 break
-            
+
             # Encrypt the response from the legacy application
             encrypted_response = public_key.encrypt(
                 response,
