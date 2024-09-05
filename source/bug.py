@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 # Determine the directory one folder above the current working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-KEY_DIR = os.path.join(BASE_DIR, '..')  # One folder up
+KEY_DIR = os.path.join(BASE_DIR, 'Keys')  # Change Directory to Keys
 
 # File paths for RSA keys
 PRIVATE_KEY_PATH = os.path.join(KEY_DIR, 'private_key.pem')

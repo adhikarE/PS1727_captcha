@@ -11,8 +11,8 @@ private_key = rsa.generate_private_key(
 public_key = private_key.public_key()
 
 # File paths to save the keys
-PRIVATE_KEY_PATH = 'private_key.pem'  # Path for saving the private key
-PUBLIC_KEY_PATH = 'public_key.pem'  # Path for saving the public key
+PRIVATE_KEY_PATH = 'source/Keys/private_key.pem'  # Path for saving the private key
+PUBLIC_KEY_PATH = 'source/Keys/public_key.pem'  # Path for saving the public key
 
 # Save the private key to a PEM file
 with open(PRIVATE_KEY_PATH, 'wb') as f:
