@@ -4,6 +4,17 @@ import threading
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 
+debug_opt = input("Debugging (Y/N): ")
+debug_opt = debug_opt.upper()
+
+if debug_opt == 'Y':
+
+    DEBUG = True
+
+else:
+    
+    DEBUG = False
+
 # Determine the directory one folder above the current working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KEY_DIR = os.path.join(BASE_DIR, 'Keys')  # Change directory to Keys
@@ -32,9 +43,10 @@ def receive():
             if not encrypted_message:
                 break
             
-            print("\n" + "="*50)
-            print(f"Received encrypted response: \n{encrypted_message.hex()}")
-            print("="*50)
+            if DEBUG == True:
+                print("\n" + "="*50)
+                print(f"Received encrypted response: \n{encrypted_message.hex()}")
+                print("="*50)
 
             # Decrypt the received encrypted message
             decrypted_message = private_key.decrypt(
@@ -68,12 +80,13 @@ def write():
                 label=None
             )
         )
-        
-        print("\n" + "="*50)
-        print(f"Original message: \n{message}")
-        print("="*50)
-        print(f"Encrypted message: \n{encrypted_message.hex()}")
-        print("="*50 + "\n")
+       
+        if DEBUG == True: 
+            print("\n" + "="*50)
+            print(f"Original message: \n{message}")
+            print("="*50)
+            print(f"Encrypted message: \n{encrypted_message.hex()}")
+            print("="*50 + "\n")
 
         client.send(encrypted_message)  # Send encrypted message to server
 

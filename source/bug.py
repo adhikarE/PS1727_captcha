@@ -4,6 +4,16 @@ import threading
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 
+debug_opt = input("Debugging (Y/N): ")
+debug_opt = debug_opt.upper()
+
+if debug_opt == 'Y':
+
+    DEBUG = True
+
+else:
+    DEBUG = False
+
 # Determine the directory one folder above the current working directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KEY_DIR = os.path.join(BASE_DIR, 'Keys')  # Change Directory to Keys
@@ -47,6 +57,11 @@ def ingress(client_socket):
             if not encrypted_message:
                 break
             
+            if DEBUG == True:
+                print("\n" + "="*50)
+                print(f"Received encrypted response: \n{encrypted_message.hex()}")
+                print("="*50)
+            
             # Decrypt the received encrypted message
             decrypted_message = private_key.decrypt(
                 encrypted_message,
@@ -56,6 +71,11 @@ def ingress(client_socket):
                     label=None
                 )
             ).decode('ascii')
+            
+            if DEBUG == True:
+                print("\n" + "="*50)
+                print(f"Received decrypted response: \n{decrypted_message}")
+                print("="*50)
             
             # Forward decrypted message to the legacy application
             legacy_socket.send(decrypted_message.encode('ascii'))
@@ -82,6 +102,13 @@ def egress(client_socket):
                     label=None
                 )
             )
+
+            if DEBUG == True:
+                print("\n" + "="*50)
+                print(f"Original response from legacy application: \n{response}")
+                print("="*50)
+                print(f"Encrypted response sent to client: \n{encrypted_response.hex()}")
+                print("="*50 + "\n")
             
             # Send the encrypted response back to the client
             client_socket.send(encrypted_response)
