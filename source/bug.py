@@ -1,13 +1,12 @@
 import os
 import socket
 import threading
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes, serialization
 
 debug_opt = input("Debugging (Y/N): ")
-debug_opt = debug_opt.upper()
 
-if debug_opt == 'Y':
+if debug_opt.upper() == 'Y':
 
     DEBUG = True
 
@@ -15,23 +14,11 @@ else:
     
     DEBUG = False
 
-# Determine the directory one folder above the current working directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-KEY_DIR = os.path.join(BASE_DIR, 'Keys')  # Change Directory to Keys
+# Generate RSA key pair (bug's private and public key)
+private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+public_key = private_key.public_key()
 
-# File paths for RSA keys
-PRIVATE_KEY_PATH = os.path.join(KEY_DIR, 'private_key.pem')
-PUBLIC_KEY_PATH = os.path.join(KEY_DIR, 'public_key.pem')
-
-# Load the RSA public key
-with open(PUBLIC_KEY_PATH, 'rb') as f:
-    public_key = serialization.load_pem_public_key(f.read())
-
-# Load the RSA private key
-with open(PRIVATE_KEY_PATH, 'rb') as f:
-    private_key = serialization.load_pem_private_key(f.read(), password=None)
-
-# Export public key in PEM format to send to the client
+# Encode server's public key in PEM format to share with the client
 public_pem = public_key.public_bytes(
     encoding=serialization.Encoding.PEM,
     format=serialization.PublicFormat.SubjectPublicKeyInfo
@@ -58,9 +45,9 @@ def ingress(client_socket):
             if not encrypted_message:
                 break
             
-            if DEBUG == True:
+            if DEBUG:
                 print("\n" + "="*50)
-                print(f"Received encrypted response: \n{encrypted_message.hex()}")
+                print(f"\nReceived encrypted response: \n{encrypted_message.hex()}")
                 print("="*50)
             
             # Decrypt the received encrypted message
@@ -73,7 +60,7 @@ def ingress(client_socket):
                 )
             ).decode('ascii')
             
-            if DEBUG == True:
+            if DEBUG:
                 print("\n" + "="*50)
                 print(f"Received decrypted response: \n{decrypted_message}")
                 print("="*50)
@@ -86,16 +73,16 @@ def ingress(client_socket):
             client_socket.close()
             break
 
-def egress(client_socket):
+def egress(client_socket, client_public_key):
     """Handle outgoing data from the legacy application, encrypt it, and send it to the client."""
     while True:
         try:
             response = legacy_socket.recv(1024)  # Receive data from the legacy application
             if not response:
                 break
-
+            
             # Encrypt the response from the legacy application
-            encrypted_response = public_key.encrypt(
+            encrypted_response = client_public_key.encrypt(
                 response,
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -104,7 +91,7 @@ def egress(client_socket):
                 )
             )
 
-            if DEBUG == True:
+            if DEBUG:
                 print("\n" + "="*50)
                 print(f"Original response from legacy application: \n{response}")
                 print("="*50)
@@ -123,15 +110,14 @@ def handle_client(client_socket):
     """Send the public key to the client and start ingress and egress threads."""
     client_socket.send(public_pem)  # Send the public key to the client
 
+     # Receive the client's public key
+    client_public_pem = client_socket.recv(1024)
+    client_public_key = serialization.load_pem_public_key(client_public_pem)
+
     # Start threads for handling incoming and outgoing data
-    ingress_thread = threading.Thread(target=ingress, args=(client_socket,))
-    egress_thread = threading.Thread(target=egress, args=(client_socket,))
+    ingress_thread = threading.Thread(target=ingress, args=(client_socket,)).start()
+    egress_thread = threading.Thread(target=egress, args=(client_socket, client_public_key,)).start()
 
-    ingress_thread.start()
-    egress_thread.start()
-
-    ingress_thread.join()
-    egress_thread.join()
 
 def start_bug_server():
     """Start the bug server to accept client connections."""
