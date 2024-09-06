@@ -247,3 +247,34 @@ In debug mode, the client and server will print the original message, encrypted 
 -  **Session Management**: Add session-based encryption for more dynamic key management.
 
 -  **Authentication**: Implement client-server authentication to ensure only authorized clients can communicate.
+
+
+# Contributing
+
+**Follow these steps before making a contribution. This will sync your local repo with the remote repo**
+
+1. Fetch the latest changes from the remote
+
+- This retrieves the latest changes from the remote without applying them to your local branch:
+
+```git fetch origin```
+
+2. Reset your local branch to match the remote
+
+- To make your local master branch exactly like the remote (overwriting any local changes), use:
+
+```git reset --hard origin/master```
+
+3. Clean untracked files and directories (optional)
+
+- To remove untracked files and directories:
+
+```git clean -fd```
+
+4. Pull the latest changes
+
+- Ensure your local repository is fully synced with the remote:
+
+```git pull origin master```
+
+This process will sync your local master branch with the remote.
