@@ -62,15 +62,10 @@ We install a virtual client on the user side and add an IoT device before the le
 
 ---
 
-## Key Generation
-A Python script (`generate_keys.py`) generates a pair of RSA keys (private and public) for the bug server and client. The private key decrypts messages, while the public key encrypts data between components.
-
----
-
 ## Prototype Flow
 
-### 1. Key Generation
-The `generate_keys.py` script generates RSA keys for encryption and decryption.
+### 1. Key Generation & Exchange
+Upon establishing a connection, both the client and the server dynamically generate new RSA key pairs. The server transmits its public key to the client, which is stored in a designated variable. Subsequently, the client responds by sending its own public key back to the server, where it is securely stored for further communication.
 
 ### 2. Client Application
 - Connects to the bug server and sends encrypted commands.
