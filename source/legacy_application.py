@@ -5,11 +5,9 @@ debug_opt = input("Debugging (Y/N): ")
 debug_opt = debug_opt.upper()
 
 if debug_opt == 'Y':
-
     DEBUG = True
 
 else:
-    
     DEBUG = False
 
 HOST = '127.0.0.1'
@@ -26,6 +24,7 @@ DATA = ["Aadya, Anusha, Kavish, Sia, Suresh, Tatsam", "Problem Statement Number:
 ERROR = "Couldn't process!"
 TERMINATE = "RST"
 
+
 def serve():
     client, address = server.accept()
     client_list.append(client)
@@ -35,28 +34,28 @@ def serve():
 
         message = client.recv(1024).decode("ascii")
 
-        if DEBUG == True:
-            print("\n" + "="*50)
+        if DEBUG:
+            print("\n" + "=" * 50)
             print(f"Received PT response: \n{message}")
-            print("="*50)
+            print("=" * 50)
 
         if message == "data":
             client.send(DATA[0].encode("ascii"))
-            
-            if DEBUG == True:
-                print("\n" + "="*50)
+
+            if DEBUG:
+                print("\n" + "=" * 50)
                 print(f"Transmitted PT data: \n{DATA[0]}")
-                print("="*50)
-                
+                print("=" * 50)
+
 
         elif message == "SIH":
             client.send(DATA[1].encode("ascii"))
 
-            if DEBUG == True:
-                print("\n" + "="*50)
+            if DEBUG:
+                print("\n" + "=" * 50)
                 print(f"Transmitted PT data: \n{DATA[1]}")
-                print("="*50)
-                
+                print("=" * 50)
+
 
         elif message == TERMINATE:
             client_list.remove(client)
@@ -68,12 +67,13 @@ def serve():
         else:
             client.send(ERROR.encode("ascii"))
 
-            if DEBUG == True:
-                print("\n" + "="*50)
+            if DEBUG:
+                print("\n" + "=" * 50)
                 print(f"Transmitted PT data: \n{ERROR}")
-                print("="*50)
-            
+                print("=" * 50)
+
             continue
+
 
 thread = threading.Thread(target=serve)
 thread.start()
