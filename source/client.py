@@ -1,13 +1,12 @@
 import os
 import socket
 import threading
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes, serialization
 
 debug_opt = input("Debugging (Y/N): ")
-debug_opt = debug_opt.upper()
 
-if debug_opt == 'Y':
+if debug_opt.upper() == 'Y':
 
     DEBUG = True
 
@@ -15,25 +14,26 @@ else:
     
     DEBUG = False
 
-# Determine the directory one folder above the current working directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-KEY_DIR = os.path.join(BASE_DIR, 'Keys')  # Change directory to Keys
+# Generate RSA key pair (client's private and public key)
+private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+public_key = private_key.public_key()
 
-# File paths for RSA keys
-PRIVATE_KEY_PATH = os.path.join(KEY_DIR, 'private_key.pem')
-PUBLIC_KEY_PATH = os.path.join(KEY_DIR, 'public_key.pem')
-
-# Load RSA private key for decryption
-with open(PRIVATE_KEY_PATH, 'rb') as f:
-    private_key = serialization.load_pem_private_key(f.read(), password=None)
+# Export client's public key in PEM format to share with the server
+public_pem = public_key.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+)
 
 # Set up a client socket
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', int(input("Enter the port: "))))  # Connect to bug.py server
 
-# Receive the public key from bug.py
-public_pem = client.recv(1024)
-public_key = serialization.load_pem_public_key(public_pem)
+# Receive the server's public key
+bug_public_pem = client.recv(1024)
+bug_public_key = serialization.load_pem_public_key(bug_public_pem)
+
+# Send the client's public key to the server
+client.send(public_pem)
 
 TERMINATE = "RST"
 
@@ -45,7 +45,7 @@ def receive():
             if not encrypted_message:
                 break
             
-            if DEBUG == True:
+            if DEBUG:
                 print("\n" + "="*50)
                 print(f"Received encrypted response: \n{encrypted_message.hex()}")
                 print("="*50)
@@ -65,7 +65,7 @@ def receive():
 
             if decrypted_message == "RST":
                 break
-
+        
         except Exception as e:
             print(f"Decryption error: {e}")
             client.close()
@@ -78,7 +78,7 @@ def write():
         message = input("Enter your command: ")
 
         # Encrypt the message to be sent
-        encrypted_message = public_key.encrypt(
+        encrypted_message = bug_public_key.encrypt(
             message.encode('ascii'),
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
@@ -86,12 +86,12 @@ def write():
                 label=None
             )
         )
-       
-        if DEBUG == True: 
+
+        if DEBUG: 
             print("\n" + "="*50)
-            print(f"Original message: \n{message}")
+            print(f"\nOriginal message: \n{message}")
             print("="*50)
-            print(f"Encrypted message: \n{encrypted_message.hex()}")
+            print(f"\nEncrypted message: \n{encrypted_message.hex()}")
             print("="*50 + "\n")
 
         client.send(encrypted_message)  # Send encrypted message to server
