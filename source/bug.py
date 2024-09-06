@@ -1,17 +1,15 @@
-import os
 import socket
 import threading
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 debug_opt = input("Debugging (Y/N): ")
 
 if debug_opt.upper() == 'Y':
-
     DEBUG = True
 
 else:
-    
     DEBUG = False
 
 # Generate RSA key pair (bug's private and public key)
@@ -37,6 +35,7 @@ bug_server.listen(1)  # Listen for one incoming connection
 legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 legacy_socket.connect((HOST, LEGACY_PORT))
 
+
 def ingress(client_socket):
     """Handle incoming data from the client, decrypt it, and forward it to the legacy application."""
     while True:
@@ -44,12 +43,12 @@ def ingress(client_socket):
             encrypted_message = client_socket.recv(256)  # Receive encrypted data from client
             if not encrypted_message:
                 break
-            
+
             if DEBUG:
-                print("\n" + "="*50)
+                print("\n" + "=" * 50)
                 print(f"\nReceived encrypted response: \n{encrypted_message.hex()}")
-                print("="*50)
-            
+                print("=" * 50)
+
             # Decrypt the received encrypted message
             decrypted_message = private_key.decrypt(
                 encrypted_message,
@@ -59,12 +58,12 @@ def ingress(client_socket):
                     label=None
                 )
             ).decode('ascii')
-            
+
             if DEBUG:
-                print("\n" + "="*50)
+                print("\n" + "=" * 50)
                 print(f"Received decrypted response: \n{decrypted_message}")
-                print("="*50)
-            
+                print("=" * 50)
+
             # Forward decrypted message to the legacy application
             legacy_socket.send(decrypted_message.encode('ascii'))
 
@@ -73,6 +72,7 @@ def ingress(client_socket):
             client_socket.close()
             break
 
+
 def egress(client_socket, client_public_key):
     """Handle outgoing data from the legacy application, encrypt it, and send it to the client."""
     while True:
@@ -80,7 +80,7 @@ def egress(client_socket, client_public_key):
             response = legacy_socket.recv(1024)  # Receive data from the legacy application
             if not response:
                 break
-            
+
             # Encrypt the response from the legacy application
             encrypted_response = client_public_key.encrypt(
                 response,
@@ -92,12 +92,12 @@ def egress(client_socket, client_public_key):
             )
 
             if DEBUG:
-                print("\n" + "="*50)
+                print("\n" + "=" * 50)
                 print(f"Original response from legacy application: \n{response}")
-                print("="*50)
+                print("=" * 50)
                 print(f"Encrypted response sent to client: \n{encrypted_response.hex()}")
-                print("="*50 + "\n")
-            
+                print("=" * 50 + "\n")
+
             # Send the encrypted response back to the client
             client_socket.send(encrypted_response)
 
@@ -106,11 +106,12 @@ def egress(client_socket, client_public_key):
             client_socket.close()
             break
 
+
 def handle_client(client_socket):
     """Send the public key to the client and start ingress and egress threads."""
     client_socket.send(public_pem)  # Send the public key to the client
 
-     # Receive the client's public key
+    # Receive the client's public key
     client_public_pem = client_socket.recv(1024)
     client_public_key = serialization.load_pem_public_key(client_public_pem)
 
@@ -128,5 +129,6 @@ def start_bug_server():
         print(f"Connected to client with address {addr}")
         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
         client_thread.start()
+
 
 start_bug_server()
