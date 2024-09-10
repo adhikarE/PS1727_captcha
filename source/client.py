@@ -32,9 +32,12 @@ if DEBUG:
     print(f"Client IP: {client_ip}")
     print(f"Client MAC: {client_mac}")
 
+
+REMOTE_HOST = input("Enter the remote host IP address: ")
+
 # Set up a client socket
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', int(input("Enter the port: "))))  # Connect to bug.py server
+client.connect((REMOTE_HOST, int(input("Enter the port: "))))  # Connect to bug.py server
 
 # Receive the server's public key
 bug_public_pem = client.recv(1024)

@@ -21,7 +21,7 @@ public_pem = public_key.public_bytes(
     format=serialization.PublicFormat.SubjectPublicKeyInfo
 )
 
-HOST = '127.0.0.1'
+HOST = input("Enter the application IP address: ")
 BUG_PORT = int(input("Enter the port for bug.py to listen for clients: "))  # Port for bug.py server
 LEGACY_PORT = int(input("Enter the port for legacy_application.py to connect: "))  # Port for legacy application
 

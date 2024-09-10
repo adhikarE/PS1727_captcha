@@ -9,7 +9,7 @@ if debug_opt == 'Y':
 else:
     DEBUG = False
 
-HOST = '127.0.0.1'
+HOST = input("Enter the static IP address you want to set: ")
 PORT = int(input("Enter the port for legacy application: "))
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
