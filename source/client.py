@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import uuid  # For MAC address retrieval
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
@@ -8,7 +8,6 @@ debug_opt = input("Debugging (Y/N): ")
 
 if debug_opt.upper() == 'Y':
     DEBUG = True
-
 else:
     DEBUG = False
 
@@ -21,6 +20,17 @@ public_pem = public_key.public_bytes(
     encoding=serialization.Encoding.PEM,
     format=serialization.PublicFormat.SubjectPublicKeyInfo
 )
+
+# Get client's IP address
+client_ip = socket.gethostbyname(socket.gethostname())
+
+# Get client's MAC address
+client_mac = ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff) for elements in range(0, 2*6, 8)][::-1])
+
+# Display MAC and IP for debugging
+if DEBUG:
+    print(f"Client IP: {client_ip}")
+    print(f"Client MAC: {client_mac}")
 
 # Set up a client socket
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -77,9 +87,12 @@ def write():
         # Prompt the user for input without an extra newline
         message = input("Enter your command: ")
 
+        # Add IP and MAC address to the message
+        message_with_info = f"[IP:{client_ip}] [MAC:{client_mac}] {message}"
+
         # Encrypt the message to be sent
         encrypted_message = bug_public_key.encrypt(
-            message.encode('ascii'),
+            message_with_info.encode('ascii'),
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
@@ -89,7 +102,7 @@ def write():
 
         if DEBUG:
             print("\n" + "=" * 50)
-            print(f"\nOriginal message: \n{message}")
+            print(f"\nOriginal message with IP and MAC: \n{message_with_info}")
             print("=" * 50)
             print(f"\nEncrypted message: \n{encrypted_message.hex()}")
             print("=" * 50 + "\n")

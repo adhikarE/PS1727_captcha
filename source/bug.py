@@ -8,7 +8,6 @@ debug_opt = input("Debugging (Y/N): ")
 
 if debug_opt.upper() == 'Y':
     DEBUG = True
-
 else:
     DEBUG = False
 
@@ -36,8 +35,29 @@ legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 legacy_socket.connect((HOST, LEGACY_PORT))
 
 
+def extract_mac_ip(decrypted_message):
+    """Extract MAC and IP address from the received message."""
+    try:
+        # Split the message by spaces to get IP, MAC, and the actual command
+        parts = decrypted_message.split(" ", 2)
+        
+        # IP and MAC might be enclosed in brackets, so clean that up
+        ip = parts[0].split(":")[1].strip("[]")
+        
+        # For MAC, instead of splitting by colon, capture the entire MAC format
+        mac = parts[1].split(":", 1)[1].strip("[]")
+        
+        # The remainder is the command
+        command = parts[2]
+        
+        return ip, mac, command
+    except IndexError:
+        return None, None, decrypted_message
+
+
+
 def ingress(client_socket):
-    """Handle incoming data from the client, decrypt it, and forward it to the legacy application."""
+    """Handle incoming data from the client, decrypt it, log MAC/IP, and forward it to the legacy application."""
     while True:
         try:
             encrypted_message = client_socket.recv(256)  # Receive encrypted data from client
@@ -46,7 +66,7 @@ def ingress(client_socket):
 
             if DEBUG:
                 print("\n" + "=" * 50)
-                print(f"\nReceived encrypted response: \n{encrypted_message.hex()}")
+                print(f"Received encrypted response: \n{encrypted_message.hex()}")
                 print("=" * 50)
 
             # Decrypt the received encrypted message
@@ -59,13 +79,19 @@ def ingress(client_socket):
                 )
             ).decode('ascii')
 
+            # Extract IP, MAC, and actual command
+            ip, mac, command = extract_mac_ip(decrypted_message)
+
             if DEBUG:
                 print("\n" + "=" * 50)
                 print(f"Received decrypted response: \n{decrypted_message}")
+                if ip and mac:
+                    print(f"Client IP: {ip}, Client MAC: {mac}")
+                print(f"Command: {command}")
                 print("=" * 50)
 
-            # Forward decrypted message to the legacy application
-            legacy_socket.send(decrypted_message.encode('ascii'))
+            # Forward only the command (without IP and MAC) to the legacy application
+            legacy_socket.send(command.encode('ascii'))
 
         except Exception as e:
             print(f"Error in ingress: {e}")
@@ -116,8 +142,8 @@ def handle_client(client_socket):
     client_public_key = serialization.load_pem_public_key(client_public_pem)
 
     # Start threads for handling incoming and outgoing data
-    ingress_thread = threading.Thread(target=ingress, args=(client_socket,)).start()
-    egress_thread = threading.Thread(target=egress, args=(client_socket, client_public_key,)).start()
+    threading.Thread(target=ingress, args=(client_socket,)).start()
+    threading.Thread(target=egress, args=(client_socket, client_public_key,)).start()
 
 
 def start_bug_server():

@@ -6,74 +6,77 @@ debug_opt = debug_opt.upper()
 
 if debug_opt == 'Y':
     DEBUG = True
-
 else:
     DEBUG = False
 
 HOST = '127.0.0.1'
-PORT = int(input("Enter the port: "))
-
+PORT = int(input("Enter the port for legacy application: "))
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 server.bind((HOST, PORT))
 server.listen()
 
 client_list = []
-
-DATA = ["Aadya, Anusha, Kavish, Sia, Suresh, Tatsam", "Problem Statement Number: 1727"]
+DATA = {
+    "data": "Aadya, Anusha, Kavish, Sia, Suresh, Tatsam",
+    "SIH": "Problem Statement Number: 1727"
+}
 ERROR = "Couldn't process!"
 TERMINATE = "RST"
 
 
-def serve():
-    client, address = server.accept()
+def handle_client(client, address):
+    """Handles the communication with a connected client."""
+    print(f"{client} Connected from {address}")
     client_list.append(client)
-    print(f"{client} Connected to the application")
 
-    while client_list:
+    while True:
+        try:
+            message = client.recv(1024).decode("ascii")
 
-        message = client.recv(1024).decode("ascii")
-
-        if DEBUG:
-            print("\n" + "=" * 50)
-            print(f"Received PT response: \n{message}")
-            print("=" * 50)
-
-        if message == "data":
-            client.send(DATA[0].encode("ascii"))
+            if not message:
+                break  # Client disconnected
 
             if DEBUG:
                 print("\n" + "=" * 50)
-                print(f"Transmitted PT data: \n{DATA[0]}")
+                print(f"Received PT response from {address}: \n{message}")
                 print("=" * 50)
 
+            # Command processing
+            if message in DATA:
+                client.send(DATA[message].encode("ascii"))
+                if DEBUG:
+                    print("\n" + "=" * 50)
+                    print(f"Transmitted PT data: \n{DATA[message]}")
+                    print("=" * 50)
+            elif message == TERMINATE:
+                client_list.remove(client)
+                client.send(TERMINATE.encode("ascii"))
+                print(f"{client} disconnected!")
+                break
+            else:
+                client.send(ERROR.encode("ascii"))
+                if DEBUG:
+                    print("\n" + "=" * 50)
+                    print(f"Transmitted error message: {ERROR}")
+                    print("=" * 50)
 
-        elif message == "SIH":
-            client.send(DATA[1].encode("ascii"))
+        except Exception as e:
+            print(f"Error with client {address}: {e}")
+            break
 
-            if DEBUG:
-                print("\n" + "=" * 50)
-                print(f"Transmitted PT data: \n{DATA[1]}")
-                print("=" * 50)
-
-
-        elif message == TERMINATE:
-            client_list.remove(client)
-            client.send(TERMINATE.encode("ascii"))
-            client.close()
-            print(f"{client} disconnected!")
-            continue
-
-        else:
-            client.send(ERROR.encode("ascii"))
-
-            if DEBUG:
-                print("\n" + "=" * 50)
-                print(f"Transmitted PT data: \n{ERROR}")
-                print("=" * 50)
-
-            continue
+    client.close()
 
 
-thread = threading.Thread(target=serve)
-thread.start()
+def start_server():
+    """Start the server to accept multiple clients."""
+    print("Legacy Application Server started and listening...")
+
+    while True:
+        client, address = server.accept()
+        # Spawn a new thread for each client
+        client_thread = threading.Thread(target=handle_client, args=(client, address))
+        client_thread.start()
+
+
+if __name__ == "__main__":
+    start_server()
