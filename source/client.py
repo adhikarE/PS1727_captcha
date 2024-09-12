@@ -4,9 +4,7 @@ import uuid  # For MAC address retrieval
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-debug_opt = input("Debugging (Y/N): ")
-
-if debug_opt.upper() == 'Y':
+if input("Debugging (Y/N): ").upper() == 'Y':
     DEBUG = True
 else:
     DEBUG = False

@@ -1,10 +1,7 @@
 import socket
 import threading
 
-debug_opt = input("Debugging (Y/N): ")
-debug_opt = debug_opt.upper()
-
-if debug_opt == 'Y':
+if input("Debugging (Y/N): ").upper() == 'Y':
     DEBUG = True
 else:
     DEBUG = False
