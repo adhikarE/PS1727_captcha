@@ -4,10 +4,8 @@ import uuid  # For MAC address retrieval
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-if input("Debugging (Y/N): ").upper() == 'Y':
-    DEBUG = True
-else:
-    DEBUG = False
+
+DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else DEBUG = False
 
 # Generate RSA key pair (client's private and public key)
 private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

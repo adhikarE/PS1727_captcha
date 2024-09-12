@@ -1,10 +1,8 @@
 import socket
 import threading
 
-if input("Debugging (Y/N): ").upper() == 'Y':
-    DEBUG = True
-else:
-    DEBUG = False
+
+DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else DEBUG = False
 
 HOST = input("Enter the static IP address you want to set: ")
 PORT = int(input("Enter the port for legacy application: "))
