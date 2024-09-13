@@ -5,7 +5,13 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
-DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else DEBUG = False
+DEBUG = (bool)
+
+if input("Debugging (Y/N): ").upper() == 'Y':
+    DEBUG = True
+
+else:
+    DEBUG = False
 
 # Generate RSA key pair (bug's private and public key)
 private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
