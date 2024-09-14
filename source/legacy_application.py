@@ -1,13 +1,8 @@
 import socket
 import threading
+import sys  # Import sys for exit
 
-DEBUG = (bool)
-
-if input("Debugging (Y/N): ").upper() == "Y":
-    DEBUG = True
-
-else:
-    DEBUG = False
+DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
 HOST = input("Enter the static IP address you want to set: ")
 PORT = int(input("Enter the port for legacy application: "))
@@ -18,10 +13,10 @@ server.listen()
 client_list = []
 DATA = {
     "data": "Aadya, Anusha, Kavish, Sia, Suresh, Tatsam",
-    "SIH": "Problem Statement Number: 1727"
+    "sih": "Smart India Hackathon Problem Statement Number 1727"
 }
 ERROR = "Couldn't process!"
-TERMINATE = "RST"
+TERMINATE = "rst"
 
 
 def handle_client(client, address):
@@ -52,7 +47,14 @@ def handle_client(client, address):
                 client_list.remove(client)
                 client.send(TERMINATE.encode("ascii"))
                 print(f"{client} disconnected!")
-                break
+
+                # Close client socket before exiting
+                client.close()
+
+                print("Closing server socket...")
+                server.close()  # Close the server socket
+                print("Terminating legacy application server...")
+                sys.exit()  # Graceful exit after closing sockets
             else:
                 client.send(ERROR.encode("ascii"))
                 if DEBUG:
@@ -74,9 +76,15 @@ def start_server():
     while True:
         client, address = server.accept()
         # Spawn a new thread for each client
-        client_thread = threading.Thread(target=handle_client, args=(client, address))
+        client_thread = threading.Thread(
+            target=handle_client, args=(client, address))
         client_thread.start()
 
 
 if __name__ == "__main__":
-    start_server()
+    try:
+        start_server()
+    except KeyboardInterrupt:
+        print("Server is shutting down...")
+        server.close()  # Ensure the server socket is closed on shutdown
+        sys.exit()
