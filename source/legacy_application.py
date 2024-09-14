@@ -1,13 +1,7 @@
 import socket
 import threading
 
-DEBUG = (bool)
-
-if input("Debugging (Y/N): ").upper() == "Y":
-    DEBUG = True
-
-else:
-    DEBUG = False
+DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
 HOST = input("Enter the static IP address you want to set: ")
 PORT = int(input("Enter the port for legacy application: "))
@@ -18,10 +12,10 @@ server.listen()
 client_list = []
 DATA = {
     "data": "Aadya, Anusha, Kavish, Sia, Suresh, Tatsam",
-    "SIH": "Problem Statement Number: 1727"
+    "sih": "Smart India Hackathon Problem Statement Number 1727"
 }
 ERROR = "Couldn't process!"
-TERMINATE = "RST"
+TERMINATE = "rst"
 
 
 def handle_client(client, address):
@@ -74,7 +68,8 @@ def start_server():
     while True:
         client, address = server.accept()
         # Spawn a new thread for each client
-        client_thread = threading.Thread(target=handle_client, args=(client, address))
+        client_thread = threading.Thread(
+            target=handle_client, args=(client, address))
         client_thread.start()
 
 
