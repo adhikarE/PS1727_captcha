@@ -17,7 +17,7 @@ class Utilities():
         self.private_key = (str)
         self.public_key = (str)     # public key that we will receive from other party
         self.public_pem = (str)
-        self.role = (bool)  # to know if bug = false or client = true
+        self.terminate = "RST"
 
     # RSA key generation and public key encoding
     def key_generation(self) -> None:
@@ -30,7 +30,9 @@ class Utilities():
         )
 
     def encryption(self, message, public_key) -> str:
-
+        if isinstance(message, str):
+            message = message.encode('ascii')
+            
         encrypted_message = public_key.encrypt(
                 message,
                 padding.OAEP(
@@ -180,3 +182,94 @@ class Bug(Utilities):
 class Client(Utilities):
     def __init__(self) -> None:
         super().__init__()
+        self.key_generation()
+        self.client_mac = None
+        self.client_ip = None
+        
+        self.remote_host = input("Enter the remote host IP address: ")
+
+        # Set up a client socket
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((self.remote_host, int(input("Enter the port: "))))  # Connect to bug.py server
+
+
+    def receive(self):
+        """Receive encrypted messages from the server, decrypt them, and print them."""
+        while True:
+            try:
+                encrypted_message = self.client.recv(256)
+                if not encrypted_message:
+                    break
+
+                if DEBUG:
+                    print("\n" + "=" * 50)
+                    print(f"Received encrypted response: \n{encrypted_message.hex()}")
+                    print("=" * 50)
+
+                # Decrypt the received encrypted message
+                decrypted_message = self.decryption(encrypted_message, self.private_key)
+
+                print(f"Decrypted response: \n{decrypted_message}")
+                print("=" * 50 + "\n")
+
+                if decrypted_message == self.terminate:
+                    break
+
+            except Exception as e:
+                print(f"Decryption error: {e}")
+                self.client.close()
+                break
+
+
+    def write(self):
+        """Read commands from user, encrypt them, and send to the server."""
+        while True:
+            # Prompt the user for input without an extra newline
+            message = input("Enter your command: ")
+
+            # Add IP and MAC address to the message
+            message_with_info = f"[IP:{self.client_ip}] [MAC:{self.client_mac}] {message}"
+
+            # Encrypt the message to be sent
+            encrypted_message = self.encryption(message_with_info, self.public_key)
+
+            if DEBUG:
+                print("\n" + "=" * 50)
+                print(f"\nOriginal message with IP and MAC: \n{message_with_info}")
+                print("=" * 50)
+                print(f"\nEncrypted message: \n{encrypted_message.hex()}")
+                print("=" * 50 + "\n")
+
+            self.client.send(encrypted_message)  # Send encrypted message to server
+
+            if message == self.terminate:
+                self.client.close()
+                break
+
+    def get_IP_MAC(self):
+        # Get client's IP address
+        self.client_ip = socket.gethostbyname(socket.gethostname())
+
+        # Get client's MAC address
+        self.client_mac = ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff) for elements in range(0, 2*6, 8)][::-1])
+
+        # Display MAC and IP for debugging
+        if DEBUG:
+            print(f"Client IP: {self.client_ip}")
+            print(f"Client MAC: {self.client_mac}")
+    
+    def handle_bug(self):
+        self.get_IP_MAC()
+        bug_public_pem = self.client.recv(1024)
+        self.public_key = serialization.load_pem_public_key(bug_public_pem)
+
+        self.client.send(self.public_pem)
+
+        # Start threads for receiving and sending data
+        receive_thread = threading.Thread(target=self.receive)
+        receive_thread.start()
+
+        write_thread = threading.Thread(target=self.write)
+        write_thread.start()
+
+        
