@@ -1,5 +1,6 @@
 import socket
 import threading
+import sys  # Import sys for exit
 
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
@@ -46,7 +47,14 @@ def handle_client(client, address):
                 client_list.remove(client)
                 client.send(TERMINATE.encode("ascii"))
                 print(f"{client} disconnected!")
-                break
+
+                # Close client socket before exiting
+                client.close()
+
+                print("Closing server socket...")
+                server.close()  # Close the server socket
+                print("Terminating legacy application server...")
+                sys.exit()  # Graceful exit after closing sockets
             else:
                 client.send(ERROR.encode("ascii"))
                 if DEBUG:
@@ -74,4 +82,9 @@ def start_server():
 
 
 if __name__ == "__main__":
-    start_server()
+    try:
+        start_server()
+    except KeyboardInterrupt:
+        print("Server is shutting down...")
+        server.close()  # Ensure the server socket is closed on shutdown
+        sys.exit()

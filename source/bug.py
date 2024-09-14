@@ -1,3 +1,4 @@
+import sys
 from classes import Bug
 
 # Initialize Bug instance with manual IP and ports
@@ -6,4 +7,9 @@ BUG_PORT = int(input("Enter the port for bug.py to listen for clients (default i
 LEGACY_PORT = int(input("Enter the port for legacy_application.py to connect (default is 23456): ") or 23456)
 
 bug_instance = Bug(HOST, BUG_PORT, LEGACY_PORT)
-bug_instance.run()
+try:
+    bug_instance.run()
+except KeyboardInterrupt:
+    print("Bug server shutting down...")
+    bug_instance.bug_server.close()
+    sys.exit()

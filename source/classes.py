@@ -1,3 +1,4 @@
+import sys
 import socket
 import threading
 from cryptography.hazmat.primitives import hashes, serialization
@@ -77,9 +78,11 @@ class Bug(Utilities):
         self.bug_server.bind((self.host, self.bug_port))
         self.bug_server.listen(1)
 
+        self.is_running = True  # Flag to control server shutdown
+
     def process_client_data(self, client_socket):
         """Process incoming data from the client, decrypt it, log MAC/IP, and forward it to the legacy application."""
-        while True:
+        while self.is_running:
             try:
                 encrypted_message = client_socket.recv(256)
                 if not encrypted_message:
@@ -87,17 +90,31 @@ class Bug(Utilities):
 
                 decrypted_message = self.decrypt_message(encrypted_message, self.private_key)
 
+                if decrypted_message == 'rst':
+                    print("Termination command received. Shutting down bug server...")
+
+                    # Notify the client
+                    client_socket.send("Connection terminated".encode('ascii'))
+
+                    # Close sockets and shut down gracefully
+                    self.is_running = False  # Stop server
+                    client_socket.close()
+                    self.legacy_socket.close()
+                    self.bug_server.close()
+                    return
+
                 # Forward the decrypted message to the legacy application
                 self.legacy_socket.send(decrypted_message.encode('ascii'))
 
             except Exception as e:
                 print(f"Error in processing client data: {e}")
-                client_socket.close()
                 break
+
+        client_socket.close()
 
     def handle_legacy_responses(self, client_socket, client_public_key):
         """Handle outgoing data from the legacy application, encrypt it, and send it to the client."""
-        while True:
+        while self.is_running:
             try:
                 response = self.legacy_socket.recv(1024)
                 if not response:
@@ -108,27 +125,40 @@ class Bug(Utilities):
 
             except Exception as e:
                 print(f"Error in handling legacy responses: {e}")
-                client_socket.close()
                 break
+
+        client_socket.close()
 
     def establish_client_connection(self, client_socket):
         """Send the public key to the client and start processing threads."""
-        client_socket.send(self.public_pem)
+        try:
+            client_socket.send(self.public_pem)
 
-        client_public_pem = client_socket.recv(1024)
-        client_public_key = serialization.load_pem_public_key(client_public_pem)
+            client_public_pem = client_socket.recv(1024)
+            client_public_key = serialization.load_pem_public_key(client_public_pem)
 
-        threading.Thread(target=self.process_client_data, args=(client_socket,)).start()
-        threading.Thread(target=self.handle_legacy_responses, args=(client_socket, client_public_key)).start()
+            threading.Thread(target=self.process_client_data, args=(client_socket,)).start()
+            threading.Thread(target=self.handle_legacy_responses, args=(client_socket, client_public_key)).start()
+
+        except Exception as e:
+            print(f"Error in client connection: {e}")
+            client_socket.close()
 
     def run(self):
         """Start the bug server to accept client connections."""
         print("Bug server started and listening...")
-        while True:
-            client_socket, addr = self.bug_server.accept()
-            print(f"Connected to client with address {addr}")
-            self.establish_client_connection(client_socket)
-
+        while self.is_running:
+            try:
+                client_socket, addr = self.bug_server.accept()
+                print(f"Connected to client with address {addr}")
+                self.establish_client_connection(client_socket)
+            except OSError as e:
+                if not self.is_running:
+                    print("Server shutting down gracefully.")
+                else:
+                    print(f"Error in accepting connection: {e}")
+                break
+            
 
 class Client(Utilities):
     def __init__(self, server_host, server_port):
@@ -151,13 +181,37 @@ class Client(Utilities):
         while True:
             try:
                 message = input("Enter message: ")
+                
                 if message:
+                    # If the command is 'rst', terminate the connection
+                    if message.lower() == "rst":
+                        encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
+                        self.client_socket.send(encrypted_message)
+                        
+                        # Wait for the server to acknowledge the termination
+                        ack = self.client_socket.recv(1024)
+                        print(f"Server: {ack.decode('ascii')}")  # Display the termination message from the server
+                        
+                        print("Connection terminated by the server.")
+                        self.client_socket.close()
+                        
+                        print("Client disconnected. Exiting...")
+                        sys.exit()  # Exit the program completely after closing the socket
+
+                    # Encrypt the message and send
                     encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
+
+                    # Send encrypted message to the server
                     self.client_socket.send(encrypted_message)
+
+                    # Receive and decrypt the server's response
                     response = self.client_socket.recv(1024)
                     decrypted_response = self.decrypt_message(response, self.private_key)
                     print(f"Server: {decrypted_response}")
 
             except Exception as e:
                 print(f"Error communicating with server: {e}")
-                break
+                self.client_socket.close()  # Ensure the socket is closed in case of an exception
+                print("Client disconnected. Exiting...")
+                sys.exit()  # Exit completely to avoid further errors
+                
