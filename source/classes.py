@@ -28,6 +28,9 @@ class Utilities:
 
     def encrypt_message(self, message, public_key):
         """Encrypt a message using the provided public key."""
+        if isinstance(message, str):
+            message = message.encode('ascii')
+            
         encrypted_message = public_key.encrypt(
             message,
             padding.OAEP(
