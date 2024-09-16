@@ -1,5 +1,5 @@
-from classes import Client
 from configparser import ConfigParser
+from lib.prototype import Client
 
 
 config = ConfigParser()
