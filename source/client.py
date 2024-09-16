@@ -1,4 +1,4 @@
-from classes import Client
+from lib.prototype import Client
 
 # Initialize Client instance with manual IP and port
 SERVER_HOST = input("Enter the server IP address: ")
