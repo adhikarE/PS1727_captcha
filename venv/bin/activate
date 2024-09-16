@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/snatchar/Github/PS1727_captcha/venv"
+VIRTUAL_ENV="/home/snatchar/github/PS1727_captcha/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

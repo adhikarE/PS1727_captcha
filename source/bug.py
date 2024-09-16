@@ -1,5 +1,5 @@
 import sys
-from classes import Bug
+from lib.prototype import Bug
 
 # Initialize Bug instance with manual IP and ports
 HOST = input("Enter the application IP address (default is localhost): ")

@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/home/snatchar/Github/PS1727_captcha/venv"
+set -gx VIRTUAL_ENV "/home/snatchar/github/PS1727_captcha/venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
