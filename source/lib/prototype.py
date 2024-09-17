@@ -1,11 +1,52 @@
-import sys
 import socket
+import sys
 import threading
+
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-# Add the DEBUG mode
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
+
+
+def encrypt_message(message, public_key):
+    """Encrypt a message using the provided public key."""
+    if isinstance(message, str):
+        message = message.encode('ascii')
+
+    encrypted_message = public_key.encrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    if DEBUG:
+        print("\n" + "=" * 50)
+        print(f"Message before encryption: {message.decode('ascii')}")
+        print(f"Encrypted message (hex): {encrypted_message.hex()}")
+        print("=" * 50)
+    return encrypted_message
+
+
+def decrypt_message(encrypted_message, private_key):
+    """Decrypt a message using the provided private key."""
+    decrypted_message = private_key.decrypt(
+        encrypted_message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    ).decode('ascii')
+
+    if DEBUG:
+        print("\n" + "=" * 50)
+        print(f"Encrypted message (hex): {encrypted_message.hex()}")
+        print(f"Decrypted message: {decrypted_message}")
+        print("=" * 50)
+
+    return decrypted_message
 
 
 class Utilities:
@@ -25,45 +66,6 @@ class Utilities:
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-
-    def encrypt_message(self, message, public_key):
-        """Encrypt a message using the provided public key."""
-        if isinstance(message, str):
-            message = message.encode('ascii')
-            
-        encrypted_message = public_key.encrypt(
-            message,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
-        if DEBUG:
-            print("\n" + "=" * 50)
-            print(f"Message before encryption: {message.decode('ascii')}")
-            print(f"Encrypted message (hex): {encrypted_message.hex()}")
-            print("=" * 50)
-        return encrypted_message
-
-    def decrypt_message(self, encrypted_message, private_key):
-        """Decrypt a message using the provided private key."""
-        decrypted_message = private_key.decrypt(
-            encrypted_message,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        ).decode('ascii')
-
-        if DEBUG:
-            print("\n" + "=" * 50)
-            print(f"Encrypted message (hex): {encrypted_message.hex()}")
-            print(f"Decrypted message: {decrypted_message}")
-            print("=" * 50)
-
-        return decrypted_message
 
 
 class Bug(Utilities):
@@ -91,7 +93,7 @@ class Bug(Utilities):
                 if not encrypted_message:
                     break
 
-                decrypted_message = self.decrypt_message(encrypted_message, self.private_key)
+                decrypted_message = decrypt_message(encrypted_message, self.private_key)
 
                 if decrypted_message == 'rst':
                     print("Termination command received. Shutting down bug server...")
@@ -123,7 +125,7 @@ class Bug(Utilities):
                 if not response:
                     break
 
-                encrypted_response = self.encrypt_message(response, client_public_key)
+                encrypted_response = encrypt_message(response, client_public_key)
                 client_socket.send(encrypted_response)
 
             except Exception as e:
@@ -161,11 +163,12 @@ class Bug(Utilities):
                 else:
                     print(f"Error in accepting connection: {e}")
                 break
-            
+
 
 class Client(Utilities):
     def __init__(self, server_host, server_port):
         super().__init__()
+        self.server_public_key = None
         self.key_generation()
         self.server_host = server_host
         self.server_port = server_port
@@ -184,32 +187,32 @@ class Client(Utilities):
         while True:
             try:
                 message = input("Enter message: ")
-                
+
                 if message:
                     # If the command is 'rst', terminate the connection
                     if message.lower() == "rst":
-                        encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
+                        encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
                         self.client_socket.send(encrypted_message)
-                        
+
                         # Wait for the server to acknowledge the termination
                         ack = self.client_socket.recv(1024)
                         print(f"Server: {ack.decode('ascii')}")  # Display the termination message from the server
-                        
+
                         print("Connection terminated by the server.")
                         self.client_socket.close()
-                        
+
                         print("Client disconnected. Exiting...")
                         sys.exit()  # Exit the program completely after closing the socket
 
                     # Encrypt the message and send
-                    encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
+                    encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
 
                     # Send encrypted message to the server
                     self.client_socket.send(encrypted_message)
 
                     # Receive and decrypt the server's response
                     response = self.client_socket.recv(1024)
-                    decrypted_response = self.decrypt_message(response, self.private_key)
+                    decrypted_response = decrypt_message(response, self.private_key)
                     print(f"Server: {decrypted_response}")
 
             except Exception as e:
@@ -217,4 +220,3 @@ class Client(Utilities):
                 self.client_socket.close()  # Ensure the socket is closed in case of an exception
                 print("Client disconnected. Exiting...")
                 sys.exit()  # Exit completely to avoid further errors
-                
