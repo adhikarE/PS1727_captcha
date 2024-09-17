@@ -150,7 +150,14 @@ Debugging (Y/N): Y
 
 ## Contributing
 
-### Steps to Contribute:
+### Make your branch
+
+- Use the ```git checkout -b <YOUR_BRANCH_NAME>``` to make a new branch
+- Alternatively, use the ```git checkout <YOUR_BRANCH_NAME>``` to switch to a existing branch.
+
+**NOTE: USE YOUR OWN BRANCH UNLESS YOU ARE COLLABORATING**
+
+### Sync local repo with master branch:
 1. Fetch the latest changes from the remote:
    ```bash
    git fetch origin
@@ -170,6 +177,15 @@ Debugging (Y/N): Y
    ```bash
    git pull origin master
    ```
+
+### Pushing to your branch
+
+- Once you are done with your changes, push them to your branch using the following commands
+
+1. Use ```git add .``` to add all files or use ```git add <file_1> <file_1> <file_n>``` to manually add files
+2. Use ```git commit -m "<Commit message>"``` to commit the changes
+3. Use ```git push origin <YOUR_BRANCH_NAME>``` to push changes to your branch
+4. Once you are ready, make a pull request to merge your branch with the ```master``` branch and wait for admins to review the PR.
 
 ---
 
