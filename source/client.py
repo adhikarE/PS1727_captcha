@@ -1,5 +1,6 @@
 import os
 from configparser import ConfigParser
+
 from lib.prototype import Client
 
 config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
@@ -7,10 +8,8 @@ config = ConfigParser()
 config.read(config_file)
 
 # Initialize Client instance with manual IP and port
-# SERVER_HOST = input("Enter the server IP address: ")
-# SERVER_PORT = int(input("Enter the server port number (default is 12345): ") or 12345)
-SERVER_HOST = config["Default"]["host"]
-SERVER_PORT = int(config["Client"]["port"])
+SERVER_HOST = config["Default"]["host"]  # SERVER_HOST = input("Enter the server IP address: ")
+SERVER_PORT = int(config["Client"]["port"])  # SERVER_PORT = int(input("Enter the server port number: ") or 12345)
 
 
 def main():

@@ -1,3 +1,6 @@
 # Ignore the venv directory
 venv/
+.venv
+.idea
 source\__pycache__
+source\lib\__pycache__

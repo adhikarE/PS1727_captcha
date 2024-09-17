@@ -1,7 +1,7 @@
 import os
 import socket
-import threading
 import sys
+import threading
 from configparser import ConfigParser
 
 config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
@@ -12,6 +12,7 @@ DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
 # HOST = input("Enter the static IP address you want to set: ")
 # PORT = int(input("Enter the port for legacy application: "))
+
 HOST = config["Default"]["host"]
 PORT = int(config["Legacy_Application"]["port"])
 
@@ -24,8 +25,6 @@ DATA = {
     "data": "Aadya, Anusha, Kavish, Sia, Suresh, Tatsam",
     "sih": "Smart India Hackathon Problem Statement Number 1727"
 }
-ERROR = "Couldn't process!"
-TERMINATE = "rst"
 
 
 def handle_client(client, address):
@@ -52,9 +51,9 @@ def handle_client(client, address):
                     print("\n" + "=" * 50)
                     print(f"Transmitted PT data: \n{DATA[message]}")
                     print("=" * 50)
-            elif message == TERMINATE:
+            elif message.lower() == "rst":
                 client_list.remove(client)
-                client.send(TERMINATE.encode("ascii"))
+                client.send("rst".encode("ascii"))
                 print(f"{client} disconnected!")
 
                 # Close client socket before exiting
@@ -65,10 +64,10 @@ def handle_client(client, address):
                 print("Terminating legacy application server...")
                 sys.exit()  # Graceful exit after closing sockets
             else:
-                client.send(ERROR.encode("ascii"))
+                client.send("Could not process!".encode("ascii"))
                 if DEBUG:
                     print("\n" + "=" * 50)
-                    print(f"Transmitted error message: {ERROR}")
+                    print(f"Transmitted error message: Could not process!")
                     print("=" * 50)
 
         except Exception as e:
