@@ -2,5 +2,6 @@
 venv/
 .venv
 .idea
-source\__pycache__
-source\lib\__pycache__
+source/__pycache__
+source/lib/__pycache__
+source/lib/__pycache__/prototype.cpython-311.pyc
