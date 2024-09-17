@@ -1,3 +1,6 @@
+
+---
+
 # Smart India Hackathon 2024 Solution by Team *Captcha*
 
 ## Problem Statement ID: 1727  
@@ -93,8 +96,23 @@ Upon establishing a connection, both the client and the server dynamically gener
 
 ### Example Commands:
 - **`data`**: Requests specific data from the legacy application.
-- **`SIH`**: Requests another specific dataset.
-- **`RST`**: Closes the connection between the client and bug server.
+- **`sih`**: Requests another specific dataset.
+- **`rst`**: Closes the connection between the client and bug server.
+
+---
+
+## Recent Changes
+
+### 1. **Manual IP and Port Configuration**
+- The IP addresses and ports are no longer entered manually during runtime. They are now read from the `config.ini` file for both the `client.py` and `bug.py` scripts. This simplifies the setup and configuration process, ensuring consistency across different environments.
+
+### 2. **Graceful Shutdown**
+- The `bug.py` and `client.py` scripts now support a "termination" command (`rst`), allowing for a clean shutdown of the bug server and the client application.
+  
+- The `legacy_application.py` now handles `rst` commands as well, allowing for the entire system to shut down gracefully when needed.
+
+### 3. **Debugging Mode**
+- The user can enable or disable debugging at the start of each script by responding to the `Debugging (Y/N):` prompt. When enabled, detailed information about encryption and decryption processes, as well as communication between components, is logged to the console.
 
 ---
 
@@ -109,11 +127,18 @@ Upon establishing a connection, both the client and the server dynamically gener
 
 ### 2. How to Run
 
-- **Step 1**: Generate RSA keys:
-  ```bash
-  python generate_keys.py
+- **Step 1**: Configure the IP addresses and ports in the `config.ini` file:
+  ```ini
+  [Default]
+  host = 127.0.0.1
+
+  [Client]
+  port = 12345
+
+  [Legacy_Application]
+  port = 23456
   ```
-  
+
 - **Step 2**: Start the legacy application:
   ```bash
   python legacy_application.py
@@ -153,7 +178,7 @@ Debugging (Y/N): Y
 ### Make your branch
 
 - Use the ```git checkout -b <YOUR_BRANCH_NAME>``` to make a new branch
-- Alternatively, use the ```git checkout <YOUR_BRANCH_NAME>``` to switch to a existing branch.
+- Alternatively, use the ```git checkout <YOUR_BRANCH_NAME>``` to switch to an existing branch.
 
 **NOTE: USE YOUR OWN BRANCH UNLESS YOU ARE COLLABORATING**
 
@@ -188,4 +213,3 @@ Debugging (Y/N): Y
 4. Once you are ready, make a pull request to merge your branch with the ```master``` branch and wait for admins to review the PR.
 
 ---
-
