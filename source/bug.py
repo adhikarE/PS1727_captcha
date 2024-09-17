@@ -1,10 +1,12 @@
+import os
 import sys
 
 from configparser import ConfigParser
 from lib.prototype import Bug
 
+config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
 config = ConfigParser()
-config.read("config.ini")
+config.read(config_file)
 
 
 # Initialize Bug instance with manual IP and ports

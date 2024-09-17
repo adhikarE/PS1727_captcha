@@ -1,10 +1,12 @@
+import os
 import socket
 import threading
 import sys
 from configparser import ConfigParser
 
+config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
 config = ConfigParser()
-config.read("config.ini")
+config.read(config_file)
 
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
