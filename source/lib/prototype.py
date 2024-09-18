@@ -8,47 +8,6 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
 
-def encrypt_message(message, public_key):
-    """Encrypt a message using the provided public key."""
-    if isinstance(message, str):
-        message = message.encode('ascii')
-
-    encrypted_message = public_key.encrypt(
-        message,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    if DEBUG:
-        print("\n" + "=" * 50)
-        print(f"Message before encryption: {message.decode('ascii')}")
-        print(f"Encrypted message (hex): {encrypted_message.hex()}")
-        print("=" * 50)
-    return encrypted_message
-
-
-def decrypt_message(encrypted_message, private_key):
-    """Decrypt a message using the provided private key."""
-    decrypted_message = private_key.decrypt(
-        encrypted_message,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    ).decode('ascii')
-
-    if DEBUG:
-        print("\n" + "=" * 50)
-        print(f"Encrypted message (hex): {encrypted_message.hex()}")
-        print(f"Decrypted message: {decrypted_message}")
-        print("=" * 50)
-
-    return decrypted_message
-
-
 class Utilities:
     def __init__(self):
         self.private_key = None
@@ -67,21 +26,63 @@ class Utilities:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
+    def encrypt_message(self, message, public_key):
+        """Encrypt a message using the provided public key."""
+        if isinstance(message, str):
+            message = message.encode('ascii')
+
+        encrypted_message = public_key.encrypt(
+            message,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        if DEBUG:
+            print("\n" + "=" * 50)
+            print(f"Message before encryption: {message.decode('ascii')}")
+            print(f"Encrypted message (hex): {encrypted_message.hex()}")
+            print("=" * 50)
+        return encrypted_message
+
+
+    def decrypt_message(self, encrypted_message, private_key):
+        """Decrypt a message using the provided private key."""
+        decrypted_message = private_key.decrypt(
+            encrypted_message,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).decode('ascii')
+
+        if DEBUG:
+            print("\n" + "=" * 50)
+            print(f"Encrypted message (hex): {encrypted_message.hex()}")
+            print(f"Decrypted message: {decrypted_message}")
+            print("=" * 50)
+
+        return decrypted_message
 
 class Bug(Utilities):
-    def __init__(self, host, bug_port, legacy_port):
+    def __init__(self, network_interface_1, legacy_application_ip, client_port, legacy_application_port):
         super().__init__()
         self.key_generation()
-        self.host = host
-        self.bug_port = bug_port
-        self.legacy_port = legacy_port
+        self.legacy_application_ip = legacy_application_ip
+        self.client_port = client_port
+        self.legacy_application_port = legacy_application_port
+
+        self.network_interface_1 = network_interface_1
 
         self.legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.legacy_socket.connect((self.host, self.legacy_port))
+        self.legacy_socket.bind((self.network_interface_1, 0))
+        self.legacy_socket.connect((self.legacy_application_ip, self.legacy_application_port))
 
-        self.bug_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.bug_server.bind((self.host, self.bug_port))
-        self.bug_server.listen(1)
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.bind((self.network_interface_1, self.client_port))
+        self.client_socket.listen(1)
 
         self.is_running = True  # Flag to control server shutdown
 
@@ -93,7 +94,7 @@ class Bug(Utilities):
                 if not encrypted_message:
                     break
 
-                decrypted_message = decrypt_message(encrypted_message, self.private_key)
+                decrypted_message = self.decrypt_message(encrypted_message, self.private_key)
 
                 if decrypted_message == 'rst':
                     print("Termination command received. Shutting down bug server...")
@@ -105,7 +106,7 @@ class Bug(Utilities):
                     self.is_running = False  # Stop server
                     client_socket.close()
                     self.legacy_socket.close()
-                    self.bug_server.close()
+                    self.client_socket.close()
                     return
 
                 # Forward the decrypted message to the legacy application
@@ -125,7 +126,7 @@ class Bug(Utilities):
                 if not response:
                     break
 
-                encrypted_response = encrypt_message(response, client_public_key)
+                encrypted_response = self.encrypt_message(response, client_public_key)
                 client_socket.send(encrypted_response)
 
             except Exception as e:
@@ -154,7 +155,7 @@ class Bug(Utilities):
         print("Bug server started and listening...")
         while self.is_running:
             try:
-                client_socket, addr = self.bug_server.accept()
+                client_socket, addr = self.client_socket.accept()
                 print(f"Connected to client with address {addr}")
                 self.establish_client_connection(client_socket)
             except OSError as e:
@@ -166,17 +167,24 @@ class Bug(Utilities):
 
 
 class Client(Utilities):
-    def __init__(self, server_host, server_port):
+    def __init__(self, static_ip, bug_ip, bug_port):
+        
         super().__init__()
+        
         self.server_public_key = None
         self.key_generation()
-        self.server_host = server_host
-        self.server_port = server_port
+        
+        self.static_ip = static_ip
+
+        self.bug_ip = bug_ip
+        self.bug_port = bug_port
+        
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.bind((self.static_ip, 0))
 
     def connect_to_server(self):
         """Connect to the server and exchange public keys."""
-        self.client_socket.connect((self.server_host, self.server_port))
+        self.client_socket.connect((self.bug_ip, self.bug_port))
         self.client_socket.send(self.public_pem)
 
         server_public_pem = self.client_socket.recv(1024)
@@ -191,7 +199,7 @@ class Client(Utilities):
                 if message:
                     # If the command is 'rst', terminate the connection
                     if message.lower() == "rst":
-                        encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
+                        encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
                         self.client_socket.send(encrypted_message)
 
                         # Wait for the server to acknowledge the termination
@@ -205,14 +213,14 @@ class Client(Utilities):
                         sys.exit()  # Exit the program completely after closing the socket
 
                     # Encrypt the message and send
-                    encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
+                    encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
 
                     # Send encrypted message to the server
                     self.client_socket.send(encrypted_message)
 
                     # Receive and decrypt the server's response
                     response = self.client_socket.recv(1024)
-                    decrypted_response = decrypt_message(response, self.private_key)
+                    decrypted_response = self.decrypt_message(response, self.private_key)
                     print(f"Server: {decrypted_response}")
 
             except Exception as e:
