@@ -7,14 +7,12 @@
 **Title:** Universal Switch Set with Data Encryption and Decryption for Legacy Applications without Cyber Safety Measures
 
 ### Problem Statement Description
+
 **Background:**  
 In metro systems, OEMs install switches and bind them to their MAC addresses, making it difficult to install or upgrade switches in the network without compromising cybersecurity. Retrofitting these systems with modern security protocols can be challenging and costly, especially for organizations with limited resources or technical expertise.
 
 **Description:**  
-The problem statement aims to develop a universal switch set equipped with data encryption and decryption capabilities. This set should seamlessly integrate into various legacy applications lacking cyber safety measures. It will provide a standardized interface for encrypting sensitive data before transmission and decrypting it upon receipt, enhancing the security of legacy systems. The switch set will support industry-standard encryption algorithms and protocols to ensure compatibility with a wide range of applications. It will include robust key management features for securely generating, storing, and distributing encryption keys to authorized users, ensuring the integrity and confidentiality of sensitive information.
-
-**Expected Solution:**  
-The solution involves developing a universal switch set with encryption and decryption capabilities, tailored for legacy applications. This switch set will consist of modular components, including encryption/decryption engines, key management systems, and integration interfaces. The switch set will integrate with existing infrastructure and protocols, requiring minimal configuration and customization. This will enable organizations to safeguard sensitive information without the need for costly system upgrades or replacements.
+The problem aims to develop a universal switch set equipped with data encryption and decryption capabilities. This set should seamlessly integrate into various legacy applications lacking cyber safety measures. It will provide a standardized interface for encrypting sensitive data before transmission and decrypting it upon receipt, enhancing the security of legacy systems. The switch set will support industry-standard encryption algorithms and protocols to ensure compatibility with a wide range of applications. It will include robust key management features for securely generating, storing, and distributing encryption keys to authorized users, ensuring the integrity and confidentiality of sensitive information.
 
 ---
 
@@ -87,7 +85,7 @@ Upon establishing a connection, both the client and the server dynamically gener
 
 ---
 
-### Data Flow Overview
+## Data Flow Overview
 
 ```plaintext
 [Client] --> (Encrypted Command) --> [Bug Server] --> (Plain Text Command) --> [Legacy Application]
