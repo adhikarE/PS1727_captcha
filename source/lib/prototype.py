@@ -67,18 +67,21 @@ class Utilities:
         return decrypted_message
 
 class Bug(Utilities):
-    def __init__(self, legacy_application_ip, client_port, legacy_application_port):
+    def __init__(self, network_interface_1, legacy_application_ip, client_port, legacy_application_port):
         super().__init__()
         self.key_generation()
         self.legacy_application_ip = legacy_application_ip
         self.client_port = client_port
         self.legacy_application_port = legacy_application_port
 
+        self.network_interface_1 = network_interface_1
+
         self.legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.legacy_socket.bind((self.network_interface_1, 0))
         self.legacy_socket.connect((self.legacy_application_ip, self.legacy_application_port))
 
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.bind((self.legacy_application_ip, self.client_port))
+        self.client_socket.bind((self.network_interface_1, self.client_port))
         self.client_socket.listen(1)
 
         self.is_running = True  # Flag to control server shutdown
