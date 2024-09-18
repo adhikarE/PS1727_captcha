@@ -14,7 +14,7 @@ config.read(config_file)
 # BUG_PORT = int(input("Enter the port for bug.py to listen for clients (default is 12345): ") or 12345)
 # LEGACY_PORT = int(input("Enter the port for legacy_application.py to connect (default is 23456): ") or 23456)
 
-LEGACY_APPLICATION_IP = config["Default"]["host"]
+LEGACY_APPLICATION_IP = config["Legacy_Application"]["network_interface_1"]
 CLIENT_PORT = int(config["Client"]["port"])
 LEGACY_APPLICATION_PORT = int(config["Legacy_Application"]["port"])
 
