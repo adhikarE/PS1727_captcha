@@ -166,13 +166,20 @@ class Bug(Utilities):
 
 
 class Client(Utilities):
-    def __init__(self, bug_ip, bug_port):
+    def __init__(self, static_ip, bug_ip, bug_port):
+        
         super().__init__()
+        
         self.server_public_key = None
         self.key_generation()
+        
+        self.static_ip = static_ip
+
         self.bug_ip = bug_ip
         self.bug_port = bug_port
+        
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.bind((self.static_ip, 0))
 
     def connect_to_server(self):
         """Connect to the server and exchange public keys."""
