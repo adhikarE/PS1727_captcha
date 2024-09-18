@@ -34,7 +34,7 @@ def handle_client(client, address):
 
     while True:
         try:
-            message = client.recv(1024).decode("ascii")
+            message = client.recv(1024).lower().decode("ascii")
 
             if not message:
                 break  # Client disconnected
@@ -51,9 +51,9 @@ def handle_client(client, address):
                     print("\n" + "=" * 50)
                     print(f"Transmitted PT data: \n{DATA[message]}")
                     print("=" * 50)
-            elif message.lower() == "rst":
+            elif message == "rst":
                 client_list.remove(client)
-                client.send("rst".encode("ascii"))
+                client.send(message.encode("ascii"))
                 print(f"{client} disconnected!")
 
                 # Close client socket before exiting
