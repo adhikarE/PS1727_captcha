@@ -32,6 +32,21 @@ Blockchain & Cybersecurity
 
 ---
 
+## Index
+1. [Problem Statement Description](#problem-statement-description)
+2. [Solution Overview](#solution-overview)
+3. [Encryption: RSA 2048 Bit](#encryption-rsa-2048-bit)
+4. [Prototype Flow](#prototype-flow)
+5. [Data Flow Overview](#data-flow-overview)
+6. [Recent Changes](#recent-changes)
+7. [Installation and Usage](#installation-and-usage)
+8. [Debugging](#debugging)
+9. [Future Improvements](#future-improvements)
+10. [Contributing](#contributing)
+
+
+---
+
 ## Solution Overview
 
 ### One Bug Approach
