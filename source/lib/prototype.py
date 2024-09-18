@@ -69,18 +69,18 @@ class Utilities:
 
 
 class Bug(Utilities):
-    def __init__(self, host, bug_port, legacy_port):
+    def __init__(self, legacy_application_ip, client_port, legacy_application_port):
         super().__init__()
         self.key_generation()
-        self.host = host
-        self.bug_port = bug_port
-        self.legacy_port = legacy_port
+        self.legacy_application_ip = legacy_application_ip
+        self.client_port = client_port
+        self.legacy_application_port = legacy_application_port
 
         self.legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.legacy_socket.connect((self.host, self.legacy_port))
+        self.legacy_socket.connect((self.legacy_application_ip, self.legacy_application_port))
 
         self.bug_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.bug_server.bind((self.host, self.bug_port))
+        self.bug_server.bind((self.legacy_application_ip, self.client_port))
         self.bug_server.listen(1)
 
         self.is_running = True  # Flag to control server shutdown
@@ -166,17 +166,17 @@ class Bug(Utilities):
 
 
 class Client(Utilities):
-    def __init__(self, server_host, server_port):
+    def __init__(self, bug_ip, bug_port):
         super().__init__()
         self.server_public_key = None
         self.key_generation()
-        self.server_host = server_host
-        self.server_port = server_port
+        self.bug_ip = bug_ip
+        self.bug_port = bug_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect_to_server(self):
         """Connect to the server and exchange public keys."""
-        self.client_socket.connect((self.server_host, self.server_port))
+        self.client_socket.connect((self.bug_ip, self.bug_port))
         self.client_socket.send(self.public_pem)
 
         server_public_pem = self.client_socket.recv(1024)

@@ -13,11 +13,11 @@ DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 # HOST = input("Enter the static IP address you want to set: ")
 # PORT = int(input("Enter the port for legacy application: "))
 
-HOST = config["Default"]["host"]
+STATIC_IP = config["Default"]["host"]
 PORT = int(config["Legacy_Application"]["port"])
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
+server.bind((STATIC_IP, PORT))
 server.listen()
 
 client_list = []
