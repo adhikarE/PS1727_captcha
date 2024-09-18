@@ -8,47 +8,6 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
 
-def encrypt_message(message, public_key):
-    """Encrypt a message using the provided public key."""
-    if isinstance(message, str):
-        message = message.encode('ascii')
-
-    encrypted_message = public_key.encrypt(
-        message,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    if DEBUG:
-        print("\n" + "=" * 50)
-        print(f"Message before encryption: {message.decode('ascii')}")
-        print(f"Encrypted message (hex): {encrypted_message.hex()}")
-        print("=" * 50)
-    return encrypted_message
-
-
-def decrypt_message(encrypted_message, private_key):
-    """Decrypt a message using the provided private key."""
-    decrypted_message = private_key.decrypt(
-        encrypted_message,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    ).decode('ascii')
-
-    if DEBUG:
-        print("\n" + "=" * 50)
-        print(f"Encrypted message (hex): {encrypted_message.hex()}")
-        print(f"Decrypted message: {decrypted_message}")
-        print("=" * 50)
-
-    return decrypted_message
-
-
 class Utilities:
     def __init__(self):
         self.private_key = None
@@ -67,6 +26,45 @@ class Utilities:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
+    def encrypt_message(self, message, public_key):
+        """Encrypt a message using the provided public key."""
+        if isinstance(message, str):
+            message = message.encode('ascii')
+
+        encrypted_message = public_key.encrypt(
+            message,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        if DEBUG:
+            print("\n" + "=" * 50)
+            print(f"Message before encryption: {message.decode('ascii')}")
+            print(f"Encrypted message (hex): {encrypted_message.hex()}")
+            print("=" * 50)
+        return encrypted_message
+
+
+    def decrypt_message(self, encrypted_message, private_key):
+        """Decrypt a message using the provided private key."""
+        decrypted_message = private_key.decrypt(
+            encrypted_message,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).decode('ascii')
+
+        if DEBUG:
+            print("\n" + "=" * 50)
+            print(f"Encrypted message (hex): {encrypted_message.hex()}")
+            print(f"Decrypted message: {decrypted_message}")
+            print("=" * 50)
+
+        return decrypted_message
 
 class Bug(Utilities):
     def __init__(self, legacy_application_ip, client_port, legacy_application_port):
@@ -93,7 +91,7 @@ class Bug(Utilities):
                 if not encrypted_message:
                     break
 
-                decrypted_message = decrypt_message(encrypted_message, self.private_key)
+                decrypted_message = self.decrypt_message(encrypted_message, self.private_key)
 
                 if decrypted_message == 'rst':
                     print("Termination command received. Shutting down bug server...")
@@ -125,7 +123,7 @@ class Bug(Utilities):
                 if not response:
                     break
 
-                encrypted_response = encrypt_message(response, client_public_key)
+                encrypted_response = self.encrypt_message(response, client_public_key)
                 client_socket.send(encrypted_response)
 
             except Exception as e:
@@ -198,7 +196,7 @@ class Client(Utilities):
                 if message:
                     # If the command is 'rst', terminate the connection
                     if message.lower() == "rst":
-                        encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
+                        encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
                         self.client_socket.send(encrypted_message)
 
                         # Wait for the server to acknowledge the termination
@@ -212,14 +210,14 @@ class Client(Utilities):
                         sys.exit()  # Exit the program completely after closing the socket
 
                     # Encrypt the message and send
-                    encrypted_message = encrypt_message(message.encode('ascii'), self.server_public_key)
+                    encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
 
                     # Send encrypted message to the server
                     self.client_socket.send(encrypted_message)
 
                     # Receive and decrypt the server's response
                     response = self.client_socket.recv(1024)
-                    decrypted_response = decrypt_message(response, self.private_key)
+                    decrypted_response = self.decrypt_message(response, self.private_key)
                     print(f"Server: {decrypted_response}")
 
             except Exception as e:
