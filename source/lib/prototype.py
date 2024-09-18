@@ -77,9 +77,9 @@ class Bug(Utilities):
         self.legacy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.legacy_socket.connect((self.legacy_application_ip, self.legacy_application_port))
 
-        self.bug_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.bug_server.bind((self.legacy_application_ip, self.client_port))
-        self.bug_server.listen(1)
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.bind((self.legacy_application_ip, self.client_port))
+        self.client_socket.listen(1)
 
         self.is_running = True  # Flag to control server shutdown
 
@@ -103,7 +103,7 @@ class Bug(Utilities):
                     self.is_running = False  # Stop server
                     client_socket.close()
                     self.legacy_socket.close()
-                    self.bug_server.close()
+                    self.client_socket.close()
                     return
 
                 # Forward the decrypted message to the legacy application
@@ -152,7 +152,7 @@ class Bug(Utilities):
         print("Bug server started and listening...")
         while self.is_running:
             try:
-                client_socket, addr = self.bug_server.accept()
+                client_socket, addr = self.client_socket.accept()
                 print(f"Connected to client with address {addr}")
                 self.establish_client_connection(client_socket)
             except OSError as e:
