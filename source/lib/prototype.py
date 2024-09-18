@@ -46,7 +46,6 @@ class Utilities:
             print("=" * 50)
         return encrypted_message
 
-
     def decrypt_message(self, encrypted_message, private_key):
         """Decrypt a message using the provided private key."""
         decrypted_message = private_key.decrypt(
@@ -66,9 +65,11 @@ class Utilities:
 
         return decrypted_message
 
+
 class Bug(Utilities):
     def __init__(self, network_interface_1, legacy_application_ip, client_port, legacy_application_port):
         super().__init__()
+        self.bug_server = None
         self.key_generation()
         self.legacy_application_ip = legacy_application_ip
         self.client_port = client_port
@@ -168,17 +169,17 @@ class Bug(Utilities):
 
 class Client(Utilities):
     def __init__(self, static_ip, bug_ip, bug_port):
-        
+
         super().__init__()
-        
+
         self.server_public_key = None
         self.key_generation()
-        
+
         self.static_ip = static_ip
 
         self.bug_ip = bug_ip
         self.bug_port = bug_port
-        
+
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.bind((self.static_ip, 0))
 
