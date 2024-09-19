@@ -141,7 +141,7 @@ Upon establishing a connection, both the client and the server dynamically gener
 ### 2. How to Run
 
 - **Step 1**: Configure the IP addresses and ports in the `config.ini` file:
-  ```ini
+```ini
 [Client]
 network_interface_1 = 127.0.0.69
 port = 5551   # Port on the bug that client will connect on.
@@ -152,7 +152,7 @@ network_interface_1 = 127.0.0.50
 [Legacy_Application]
 network_interface_1 = 127.0.0.200
 port = 5550   # Port on the Legacy Application that bug will connect on.
-  ```
+```
 
 - **Step 2**: Start the legacy application:
   ```bash
