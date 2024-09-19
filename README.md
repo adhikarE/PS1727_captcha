@@ -31,16 +31,16 @@ Blockchain & Cybersecurity
 ---
 
 ## Index
-1. [Problem Statement Description](#problem-statement-description)
-2. [Solution Overview](#solution-overview)
-3. [Encryption: RSA 2048 Bit](#encryption-rsa-2048-bit)
-4. [Prototype Flow](#prototype-flow)
-5. [Data Flow Overview](#data-flow-overview)
-6. [Recent Changes](#recent-changes)
-7. [Installation and Usage](#installation-and-usage)
-8. [Debugging](#debugging)
-9. [Future Improvements](#future-improvements)
-10. [Contributing](#contributing)
+#### 1. [Problem Statement Description](#problem-statement-description)
+#### 2. [Solution Overview](#solution-overview)
+#### 3. [Encryption: RSA 2048 Bit](#encryption-rsa-2048-bit)
+#### 4. [Prototype Flow](#prototype-flow)
+#### 5. [Data Flow Overview](#data-flow-overview)
+#### 6. [Recent Changes](#recent-changes)
+#### 7. [Installation and Usage](#installation-and-usage)
+#### 8. [Debugging](#debugging)
+#### 9. [Future Improvements](#future-improvements)
+#### 10. [Contributing](#contributing)
 
 
 ---
@@ -49,7 +49,7 @@ Blockchain & Cybersecurity
 
 ### One Bug Approach
 
-We install a virtual client on the user side and add an IoT device before the legacy application that decrypts data before sending it to the legacy application (e.g., old DB server or Excel server). This ensures seamless transition and end-to-end encryption.
+We propose to install a virtual client on the user side and add an IoT device before the legacy application that decrypts data before sending it to the legacy application (e.g., old DB server or Excel server). This ensures seamless transition and end-to-end encryption.
 
 ### Data Flow
 
@@ -83,18 +83,18 @@ We install a virtual client on the user side and add an IoT device before the le
 ### 1. Key Generation & Exchange
 Upon establishing a connection, both the client and the server dynamically generate new RSA key pairs. The server transmits its public key to the client, which is stored in a designated variable. Subsequently, the client responds by sending its own public key back to the server, where it is securely stored for further communication.
 
-### 2. Client Application
+### 2. Client Application (Test Client)
 - Connects to the bug server and sends encrypted commands.
 - The bug server decrypts these commands and forwards them to the legacy application.
 - Upon receiving the response, the bug server encrypts it and sends it back to the client.
 - The client decrypts the response.
 
-### 3. Bug Server
+### 3. Bug Server (Solution)
 - Listens for incoming connections on a specific port.
 - Decrypts data and forwards it as plain text to the legacy application.
 - Encrypts the plain-text response and sends it back to the client.
 
-### 4. Legacy Application
+### 4. Legacy Application (Test Legacy Application)
 - Listens for plain-text messages from the bug server.
 - Processes requests and responds with plain-text data.
 
@@ -114,7 +114,7 @@ Upon establishing a connection, both the client and the server dynamically gener
 
 ---
 
-## Recent Changes
+## Miscellaneous Features
 
 ### 1. **Manual IP and Port Configuration**
 - The IP addresses and ports are no longer entered manually during runtime. They are now read from the `config.ini` file for both the `client.py` and `bug.py` scripts. This simplifies the setup and configuration process, ensuring consistency across different environments.
@@ -141,16 +141,18 @@ Upon establishing a connection, both the client and the server dynamically gener
 ### 2. How to Run
 
 - **Step 1**: Configure the IP addresses and ports in the `config.ini` file:
-  ```ini
-  [Default]
-  host = 127.0.0.1
+```ini
+[Client]
+network_interface_1 = 127.0.0.69
+port = 5551   # Port on the bug that client will connect on.
 
-  [Client]
-  port = 12345
+[Bug]
+network_interface_1 = 127.0.0.50
 
-  [Legacy_Application]
-  port = 23456
-  ```
+[Legacy_Application]
+network_interface_1 = 127.0.0.200
+port = 5550   # Port on the Legacy Application that bug will connect on.
+```
 
 - **Step 2**: Start the legacy application:
   ```bash
@@ -180,7 +182,8 @@ Debugging (Y/N): Y
 ---
 
 ## Future Improvements
-- **Additional Encryption Support**: Add support for AES and other encryption algorithms.
+- **Dynamic Encryption Protocol Selection**: Bug.py will randomly select out of a suite of asynchronous encryption algorithms every time it connects with a new client, to mitigating the chances of Cryptanalysis on the traffic even further and increasing security.
+- **Additional Encryption Support**: Add support for synchronous key encryption algorithms like AES.
 - **Session Management**: Implement session-based encryption for dynamic key management.
 - **Authentication**: Introduce client-server authentication to ensure authorized access.
 
