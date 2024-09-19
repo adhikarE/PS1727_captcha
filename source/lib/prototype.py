@@ -195,11 +195,11 @@ class Client(Utilities):
         """Send and receive messages from the server."""
         while True:
             try:
-                message = input("Enter message: ")
+                message = input("Enter message: ").lower()
 
                 if message:
                     # If the command is 'rst', terminate the connection
-                    if message.lower() == "rst":
+                    if message == "rst":
                         encrypted_message = self.encrypt_message(message.encode('ascii'), self.server_public_key)
                         self.client_socket.send(encrypted_message)
 
