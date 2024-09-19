@@ -10,11 +10,13 @@ config.read(config_file)
 
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
-# HOST = input("Enter the static IP address you want to set: ")
-# PORT = int(input("Enter the port for legacy application: "))
+if input("Do you want to use the configuration file: ").upper() == "Y":
+    STATIC_IP = config["Legacy_Application"]["network_interface_1"]
+    PORT = int(config["Legacy_Application"]["port"])
 
-STATIC_IP = config["Legacy_Application"]["network_interface_1"]
-PORT = int(config["Legacy_Application"]["port"])
+else:
+    STATIC_IP = input("Enter the IP address you want to assign: ")
+    PORT = int(input("Enter the port number the server should listen on: "))
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((STATIC_IP, PORT))

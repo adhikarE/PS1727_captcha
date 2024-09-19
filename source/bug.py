@@ -9,15 +9,17 @@ config = ConfigParser()
 config.read(config_file)
 
 # Initialize Bug instance with manual IP and ports
+if input("Do you want to use the configuration file: ").upper() == "Y":
+    NETWORK_INTERFACE_1 = config["Bug"]["network_interface_1"]
+    LEGACY_APPLICATION_IP = config["Legacy_Application"]["network_interface_1"]
+    CLIENT_PORT = int(config["Client"]["port"])
+    LEGACY_APPLICATION_PORT = int(config["Legacy_Application"]["port"])
 
-# HOST = input("Enter the application IP address (default is localhost): ")
-# BUG_PORT = int(input("Enter the port for bug.py to listen for clients (default is 12345): ") or 12345)
-# LEGACY_PORT = int(input("Enter the port for legacy_application.py to connect (default is 23456): ") or 23456)
-
-NETWORK_INTERFACE_1 = config["Bug"]["network_interface_1"]
-LEGACY_APPLICATION_IP = config["Legacy_Application"]["network_interface_1"]
-CLIENT_PORT = int(config["Client"]["port"])
-LEGACY_APPLICATION_PORT = int(config["Legacy_Application"]["port"])
+else:
+    NETWORK_INTERFACE_1 = input("Enter the IP address you want to assign to the bug: ")
+    LEGACY_APPLICATION_IP = input("Enter the IP address of the server: ")
+    CLIENT_PORT = int(input("Enter the port number to listen on for clients: "))
+    LEGACY_APPLICATION_PORT = int(input("Enter the port number to connect onto the server: "))
 
 bug_instance = Bug(NETWORK_INTERFACE_1, LEGACY_APPLICATION_IP, CLIENT_PORT, LEGACY_APPLICATION_PORT)
 try:
