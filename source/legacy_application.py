@@ -10,9 +10,6 @@ config.read(config_file)
 
 DEBUG = True if input("Debugging (Y/N): ").upper() == 'Y' else False
 
-# HOST = input("Enter the static IP address you want to set: ")
-# PORT = int(input("Enter the port for legacy application: "))
-
 if input("Do you want to use the configuration file: ").upper() == "Y":
     STATIC_IP = config["Legacy_Application"]["network_interface_1"]
     PORT = int(config["Legacy_Application"]["port"])
@@ -56,9 +53,9 @@ def handle_client(client, address):
                     print("\n" + "=" * 50)
                     print(f"Transmitted PT data: \n{DATA[message]}")
                     print("=" * 50)
-            elif message.lower() == "rst":
+            elif message == "rst":
                 client_list.remove(client)
-                client.send("rst".encode("ascii"))
+                client.send(message.encode("ascii"))
                 print(f"{client} disconnected!")
 
                 # Close client socket before exiting
