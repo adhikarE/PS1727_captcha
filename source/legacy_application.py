@@ -36,7 +36,7 @@ def handle_client(client, address):
 
     while True:
         try:
-            message = client.recv(1024).lower().decode("ascii")
+            message = client.recv(1024).decode("ascii")
 
             if not message:
                 break  # Client disconnected
